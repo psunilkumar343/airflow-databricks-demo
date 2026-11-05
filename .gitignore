@@ -1,0 +1,17 @@
+# Secrets - never commit (use .env.example as the template)
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Airflow runtime files (if created locally)
+logs/
+airflow.db
+
+# Office temp/lock files
+~$*
+
+# OS files
+.DS_Store
+Thumbs.db

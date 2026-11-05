@@ -1,0 +1,29 @@
+# Runs Airflow locally: http://localhost:8080
+# Login = AIRFLOW_ADMIN_USER / AIRFLOW_ADMIN_PASSWORD from .env
+services:
+  airflow:
+    image: apache/airflow:2.10.5
+    command: >
+      bash -c "pip install -q apache-airflow-providers-databricks
+      --constraint https://raw.githubusercontent.com/apache/airflow/constraints-2.10.5/constraints-3.12.txt
+      && airflow standalone"
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      # DAG is active as soon as Airflow starts, so the 06:00 schedule never gets stuck "paused"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Asia/Kolkata
+      AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: Asia/Kolkata
+      # Fixed admin login (instead of a random password on every start)
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-admin}
+      # Connection to Databricks (same as creating 'databricks_default' in the UI)
+      AIRFLOW_CONN_DATABRICKS_DEFAULT: '{"conn_type":"databricks","host":"${DATABRICKS_HOST}","password":"${DATABRICKS_TOKEN}"}'
+    volumes:
+      - ./dags:/opt/airflow/dags
+    # Start Airflow again automatically whenever Docker Desktop starts
+    restart: unless-stopped
